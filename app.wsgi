@@ -1,5 +1,5 @@
 
-app_path = /home/enol/src/feynapps/server
+app_path = '/home/enol/src/feynapps/server'
 
 import sys
 sys.path.insert(0, app_path)
