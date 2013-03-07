@@ -73,21 +73,24 @@ def get_vm_data(uuid):
     collection = connection['test'].vms
     vm = collection.find_one({'uuid': uuid})
     if not vm:
-        return vm
+        return None
     del vm["_id"]
     return vm
 
 @app.route('/data/<uuid>')
 def show_data(uuid):
-    try:
-        return jsonify(get_vm_data(uuid))
-    except KeyError:
+    d = get_vm_data(uuid)
+    if not d:
         abort(404)
+    return jsonify(d)
 
 @app.route('/data/<uuid>/<field>')
 def get_data_field(uuid, field):
+    d = get_vm_data(uuid)
+    if not d:
+        abort(404)
     try:
-        return '%s' % get_vm_data(uuid)[field]
+        return '%s' % d[field]
     except KeyError:
         abort(404)
 
