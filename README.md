@@ -1,4 +1,4 @@
-context-server
-==============
+vm-context
+==========
 
-Contextualization (meta-data) server for VM images
+Contextualization service for VM images.
