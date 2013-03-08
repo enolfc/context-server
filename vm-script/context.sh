@@ -18,8 +18,8 @@ ONE_CONTEXT_SCRIPT=context.sh
 METADATA_URL=http://cloud.ibergrid.eu:5001/data
 
 # Extra curl arguments
-# XXX this is temporary for auth  
-EXTRA_CURL_ARGS="--basic -u user:password"
+# XXX our server does not have a proper cert  
+EXTRA_CURL_ARGS="-k"
 
 # Location of the contextualizer
 CONTEXTUALIZER_PATH=/usr/local/src/context
