@@ -15,10 +15,9 @@ ONE_CONTEXT_SCRIPT=context.sh
 
 # Location of our metadata server
 # Could this be taken from somewhere else (context)?
-METADATA_URL=http://cloud.ibergrid.eu:5001/data
+METADATA_URL=https://cloud.ibergrid.eu:5000/data
 
-# Extra curl arguments
-# XXX our server does not have a proper cert  
+# Extra curl arguments, temporary for auth XXX
 EXTRA_CURL_ARGS="-k"
 
 # Location of the contextualizer
@@ -59,7 +58,7 @@ fi
 # Get meta-data from our server
 # First check that our metadata is there
 curl $EXTRA_CURL_ARGS --retry 3 --retry-delay 0 --silent --fail \
-     -X GET $METADATA_URL/$OCCI
+     -X GET $METADATA_URL/$OCCI > /dev/null
 if [ $? -ne 0 ] ; then
     echo "Unable to continue without meta-data"
     echo "Failed command: curl $EXTRA_CURL_ARGS -X GET $METADATA_URL/$OCCI"
