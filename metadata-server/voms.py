@@ -17,10 +17,13 @@
 
 import commands
 import ctypes
+from functools import wraps
 import json
 import os
 
 import M2Crypto
+
+from flask import request, abort
 
 SSL_CLIENT_S_DN_ENV = "SSL_CLIENT_S_DN"
 SSL_CLIENT_CERT_ENV = "SSL_CLIENT_CERT"
@@ -28,7 +31,7 @@ SSL_CLIENT_CERT_CHAIN_0_ENV = "SSL_CLIENT_CERT_CHAIN_0"
 
 # XXX Hardcoded config, to be removed from here
 #CONF_VOMSPOLICY = "/etc/keystone/voms.json"
-CONF_VOMSPOLICY = "voms.json"
+CONF_VOMSPOLICY = "/var/context-server/metadata-server/voms.json"
 CONF_VOMSDIR_PATH = "/etc/grid-security/vomsdir/"
 CONF_VOMSCA_PATH = "/etc/grid-security/certificates/"
 CONF_VOMSAPI_LIB = "libvomsapi.so.0"
@@ -120,9 +123,8 @@ class VOMS(object):
         self.VOMSApi.VOMS_Destroy(ctypes.byref(self.vd))
 
 
-class VomsAuthNMiddleware():
-    def __init__(self, app):
-        self.app = app
+class VomsAuthN():
+    def __init__(self):
         try:
             self.voms_json = json.loads(open(CONF_VOMSPOLICY).read())
         except ValueError:
@@ -191,28 +193,27 @@ class VomsAuthNMiddleware():
 
         return d
 
-    def _get_user(self, voms_info):
-        return voms_info["user"]
-
-    def __call__(self, environ, start_response):
-        #if environ.get('REMOTE_USER', None) is not None:
-            # authenticated upstream
-        #    return self.app(environ, start_response)
-
+    def authorize(self):
+        environ = request.environ        
         ssl_dict = {}
         for i in (SSL_CLIENT_S_DN_ENV,
                   SSL_CLIENT_CERT_ENV,
                   SSL_CLIENT_CERT_CHAIN_0_ENV):
-            ssl_dict[i] = environ.get(i, None)
+            ssl_dict[i] = request.environ.get(i, None)
 
         try:
             voms_info = self._get_voms_info(ssl_dict)
         except Exception, e:
-            raise e # 404
+            abort(401)
 
         if voms_info["voname"] not in self.voms_json:
-            raise Exception("Not authorized!") # 404
+            abort(401)
         environ['REMOTE_USER'] = voms_info["user"]
         environ['VONAME'] = voms_info["voname"]
 
-        return self.app(environ, start_response)
+def require_voms(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        VomsAuthN().authorize()
+        return f(*args, **kwds)
+    return wrapper 

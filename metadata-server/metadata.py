@@ -42,6 +42,7 @@ def abort(status_code, body=None, headers={}):
 from mongokit import Connection
 
 # configuration
+DEBUG=True
 MONGODB_HOST = 'localhost'
 MONGODB_PORT = 27017
 
@@ -56,17 +57,13 @@ connection = Connection(app.config['MONGODB_HOST'],
 app = Flask(__name__)
 
 import voms
-app.wsgi_app = voms.VomsAuthNMiddleware(app.wsgi_app)
+#app.wsgi_app = voms.VomsAuthNMiddleware(app.wsgi_app)
 
 # POST image meta-data into the server
 @app.route('/data', methods=['POST'])
+@voms.require_voms
 def put_data():
     assert(request.json)
-    # TODO: this should be a decorator!
-    user_dn = request.environ.get('REMOTE_USER', None)
-    if not user_dn:
-        abort(400)
-    # XXX
     if 'uuid' not in request.json:
         abort(400)
     d = request.json
