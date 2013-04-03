@@ -68,7 +68,20 @@ fi
 
 # extra ssh-keys
 mkdir -p ~/.ssh
-curl $EXTRA_CURL_ARGS --silent --fail -X GET $METADATA_URL/$OCCI/ssh-key >> .ssh/authorized_keys
+curl $EXTRA_CURL_ARGS --silent --fail -X GET $METADATA_URL/$OCCI/ssh-key >> ~/.ssh/authorized_keys
+
+# install git
+which yum > /dev/null
+if [ $? -eq 0 ] ; then
+    yum install -y -q git
+else
+    which apt-get > /dev/null
+    if [ $? -eq 0 ] ; then
+        apt-get install -y -q git
+    else
+        echo "unable to install git?!"
+    fi
+fi
 
 # contextualization repo
 if [ -d $CONTEXTUALIZER_PATH ] ; then
